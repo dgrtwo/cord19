@@ -5,7 +5,9 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  cache = TRUE,
+  cache.path = "README-cache/"
 )
 ```
 
@@ -14,23 +16,24 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-(WORK IN PROGRESS)
-
 The cord19 package shares the [COVID-19 Open Research Dataset (CORD-19)](https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge#all_sources_metadata_2020-03-13.csv) in a tidy form that is easily analyzed within R.
 
 ## Installation
 
-Install the package from GitHub here:
+Install the package from GitHub as follows:
 
 ``` r
 remotes::install_github("dgrtwo/cord19")
 ```
 
-## Example
+## Papers
 
-The package turns the CORD-19 dataset into a set of tidy tables. For example, the paper metadata is stored in `cord19_papers`:
+The package turns the CORD-19 dataset into a set of tidy tables.
 
-```{r example}
+For example, the paper metadata is stored in `cord19_papers`.
+
+```{r cord19_papers}
+library(dplyr)
 library(cord19)
 
 cord19_papers
@@ -40,24 +43,32 @@ cord19_papers %>%
     count(journal, sort = TRUE)
 ```
 
-Most usefully, it has the full text of the papers in `cord19_paragraphs`.
+### Full text
+
+Most usefully, `cord19_paragraphs` has the full text of the papers, with one observation for each paragraph.
 
 ```{r}
 cord19_paragraphs
+
+# What are common sections
+cord19_paragraphs %>%
+    count(section, sort = TRUE)
 ```
 
-This allows for some mining with a package like tidytext.
+This allows for some analysis with a package like tidytext.
 
 ```{r}
 library(tidytext)
 set.seed(2020)
 
-# Sample 1000 random paragraphs
-cord19_paragraphs %>%
-    sample_n(1000) %>%
+# Sample 100 random papers
+paper_words <- cord19_paragraphs %>%
+    filter(paper_id %in% sample(unique(paper_id), 100)) %>%
     unnest_tokens(word, text) %>%
-    count(word, sort = TRUE) %>%
     anti_join(stop_words, by = "word")
+
+paper_words %>%
+    count(word, sort = TRUE)
 ```
 
 ### Citations
@@ -65,7 +76,26 @@ cord19_paragraphs %>%
 This also includes the articles cited by each paper.
 
 ```{r}
-# What are the most commonly cited articles?
+cord19_paper_citations
+```
+
+What are the most commonly cited articles?
+
+```{r}
 cord19_paper_citations %>%
     count(title, sort = TRUE)
+```
+
+We could use the [widyr](https://github.com/dgrtwo/widyr) package to find which papers are often cited *by* the same paper.
+
+```{r}
+library(widyr)
+
+filtered_citations <- cord19_paper_citations %>%
+    add_count(title) %>%
+    filter(n >= 25)
+
+# What papers are often cited by the same paper?
+filtered_citations %>%
+    pairwise_cor(title, paper_id, sort = TRUE)
 ```

@@ -7,24 +7,25 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-(WORK IN PROGRESS)
-
 The cord19 package shares the [COVID-19 Open Research Dataset (CORD-19)](https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge#all_sources_metadata_2020-03-13.csv) in a tidy form that is easily analyzed within R.
 
 ## Installation
 
-Install the package from GitHub here:
+Install the package from GitHub as follows:
 
 ``` r
 remotes::install_github("dgrtwo/cord19")
 ```
 
-## Example
+## Papers
 
-The package turns the CORD-19 dataset into a set of tidy tables. For example, the paper metadata is stored in `cord19_papers`:
+The package turns the CORD-19 dataset into a set of tidy tables.
+
+For example, the paper metadata is stored in `cord19_papers`.
 
 
 ```r
+library(dplyr)
 library(cord19)
 
 cord19_papers
@@ -64,7 +65,9 @@ cord19_papers %>%
 #> # … with 1,290 more rows
 ```
 
-Most usefully, it has the full text of the papers in `cord19_paragraphs`.
+### Full text
+
+Most usefully, `cord19_paragraphs` has the full text of the papers, with one observation for each paragraph.
 
 
 ```r
@@ -72,7 +75,7 @@ cord19_paragraphs
 #> # A tibble: 364,755 x 4
 #>    paper_id               paragraph section text                               
 #>    <chr>                      <int> <chr>   <chr>                              
-#>  1 0015023cc06b5362d332b…         1 ""      VP3, and VP0 (which is further pro…
+#>  1 0015023cc06b5362d332b…         1 <NA>    VP3, and VP0 (which is further pro…
 #>  2 0015023cc06b5362d332b…         2 70      The FMDV 5′ UTR is the largest kno…
 #>  3 0015023cc06b5362d332b…         3 120     To introduce mutations into the PK…
 #>  4 0015023cc06b5362d332b…         4 120     132 133 author/funder. All rights …
@@ -83,35 +86,55 @@ cord19_paragraphs
 #>  9 0015023cc06b5362d332b…         9 144     The copyright holder for this prep…
 #> 10 0015023cc06b5362d332b…        10 144     The copyright holder for this prep…
 #> # … with 364,745 more rows
+
+# What are common sections
+cord19_paragraphs %>%
+    count(section, sort = TRUE)
+#> # A tibble: 79,531 x 2
+#>    section                   n
+#>    <chr>                 <int>
+#>  1 Discussion            41868
+#>  2 Introduction          24128
+#>  3 <NA>                  12503
+#>  4 Results               11317
+#>  5 Background             6709
+#>  6 Conclusions            5328
+#>  7 Methods                4167
+#>  8 Materials And Methods  3677
+#>  9 Conclusion             2872
+#> 10 Statistical Analysis   2689
+#> # … with 79,521 more rows
 ```
 
-This allows for some mining with a package like tidytext.
+This allows for some analysis with a package like tidytext.
 
 
 ```r
 library(tidytext)
 set.seed(2020)
 
-# Sample 1000 random paragraphs
-cord19_paragraphs %>%
-    sample_n(1000) %>%
+# Sample 100 random papers
+paper_words <- cord19_paragraphs %>%
+    filter(paper_id %in% sample(unique(paper_id), 100)) %>%
     unnest_tokens(word, text) %>%
-    count(word, sort = TRUE) %>%
     anti_join(stop_words, by = "word")
-#> # A tibble: 14,799 x 2
+
+paper_words %>%
+    count(word, sort = TRUE)
+#> # A tibble: 21,612 x 2
 #>    word          n
 #>    <chr>     <int>
-#>  1 1           573
-#>  2 cells       507
-#>  3 2           440
-#>  4 virus       391
-#>  5 3           344
-#>  6 infection   315
-#>  7 viral       303
-#>  8 cell        294
-#>  9 5           290
-#> 10 4           278
-#> # … with 14,789 more rows
+#>  1 1          1556
+#>  2 2          1366
+#>  3 cells      1300
+#>  4 virus      1184
+#>  5 infection  1033
+#>  6 3           920
+#>  7 cell        854
+#>  8 study       848
+#>  9 viral       830
+#> 10 data        773
+#> # … with 21,602 more rows
 ```
 
 ### Citations
@@ -120,21 +143,70 @@ This also includes the articles cited by each paper.
 
 
 ```r
-# What are the most commonly cited articles?
+cord19_paper_citations
+#> # A tibble: 605,650 x 9
+#>    paper_id       ref_id title            venue  volume issn  pages  year doi  
+#>    <chr>          <chr>  <chr>            <chr>  <chr>  <chr> <chr> <int> <chr>
+#>  1 0015023cc06b5… b0     Genetic economy… PLOS … 13     ""    ""     2017 <NA> 
+#>  2 0015023cc06b5… b2     A universal pro… BMC G… 604    ""    ""     2014 <NA> 
+#>  3 0015023cc06b5… b3     Library prepara… Nat P… 9      ""    1760…  2014 <NA> 
+#>  4 0015023cc06b5… b4     IDBA-UD: a de n… ""     ""     ""    ""     2012 <NA> 
+#>  5 0015023cc06b5… b6     Basic local ali… J Mol… 215    ""    403-…  1990 <NA> 
+#>  6 0015023cc06b5… b7     Genetically eng… J 614… 67     ""    5139…  1993 <NA> 
+#>  7 0015023cc06b5… b9     Both cis and tr… J Vir… 90     ""    6864…  2016 <NA> 
+#>  8 0015023cc06b5… b10    Mutational anal… J Vir… 620    ""    2027…  1996 <NA> 
+#>  9 0015023cc06b5… b12    Figure 3. The p… ""     ""     ""    ""       NA <NA> 
+#> 10 0015023cc06b5… b13    A replicon 650 … ""     ""     ""    ""       NA <NA> 
+#> # … with 605,640 more rows
+```
+
+What are the most commonly cited articles?
+
+
+```r
 cord19_paper_citations %>%
     count(title, sort = TRUE)
-#> # A tibble: 418,002 x 2
+#> # A tibble: 417,863 x 2
 #>    title                                                                      n
 #>    <chr>                                                                  <int>
 #>  1 Isolation of a novel coronavirus from a man with pneumonia in Saudi A…   397
 #>  2 Submit your next manuscript to BioMed Central and take full advantage…   295
 #>  3 Identification of a novel coronavirus in patients with severe acute r…   236
 #>  4 A novel coronavirus associated with severe acute respiratory syndrome    226
-#>  5 This article is an open access article distributed under the terms an…   210
-#>  6 Global trends in emerging infectious diseases                            193
-#>  7 Bats are natural reservoirs of SARS-like coronaviruses                   177
-#>  8 Coronavirus as a possible cause of severe acute respiratory syndrome     164
-#>  9 The copyright holder for this preprint (which was not peer-reviewed) …   150
-#> 10 Characterization of a novel coronavirus associated with severe acute …   149
-#> # … with 417,992 more rows
+#>  5 Global trends in emerging infectious diseases                            193
+#>  6 Bats are natural reservoirs of SARS-like coronaviruses                   177
+#>  7 Coronavirus as a possible cause of severe acute respiratory syndrome     164
+#>  8 Characterization of a novel coronavirus associated with severe acute …   149
+#>  9 Severe acute respiratory syndrome coronavirus-like virus in Chinese h…   140
+#> 10 Identification of a new human coronavirus                                137
+#> # … with 417,853 more rows
+```
+
+We could use the [widyr](https://github.com/dgrtwo/widyr) package to find which papers are often cited *by* the same paper.
+
+
+```r
+library(widyr)
+
+filtered_citations <- cord19_paper_citations %>%
+    add_count(title) %>%
+    filter(n >= 25)
+
+# What papers are often cited by the same paper?
+filtered_citations %>%
+    pairwise_cor(title, paper_id, sort = TRUE)
+#> # A tibble: 244,530 x 3
+#>    item1                            item2                           correlation
+#>    <chr>                            <chr>                                 <dbl>
+#>  1 Small molecule inhibitors revea… Ebola virus entry requires the…       0.776
+#>  2 Ebola virus entry requires the … Small molecule inhibitors reve…       0.776
+#>  3 VISA is an adapter protein requ… IPS-1, an adaptor triggering R…       0.765
+#>  4 IPS-1, an adaptor triggering RI… VISA is an adapter protein req…       0.765
+#>  5 Identification of a novel polyo… Identification of a third huma…       0.735
+#>  6 Identification of a third human… Identification of a novel poly…       0.735
+#>  7 The IFITM proteins mediate cell… Distinct patterns of IFITM-med…       0.727
+#>  8 Distinct patterns of IFITM-medi… The IFITM proteins mediate cel…       0.727
+#>  9 Cardif is an adaptor protein in… VISA is an adapter protein req…       0.698
+#> 10 VISA is an adapter protein requ… Cardif is an adaptor protein i…       0.698
+#> # … with 244,520 more rows
 ```

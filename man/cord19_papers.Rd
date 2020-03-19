@@ -22,6 +22,10 @@
   \item{who}{CovidenceWHO}
   \item{has_full_text}{Does it have full text}
 }}
+\source{
+\url{https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge},
+specifically the \code{all_sources_metadata_DATE.csv} file.
+}
 \usage{
 cord19_papers
 }
@@ -29,8 +33,8 @@ cord19_papers
 Metadata such as titles, authors, journal, and publication IDs for each
 paper in the CORD-19 dataset. This comes from the
 \code{all_sources_metadata_DATE.csv} file in the decompressed dataset.
-Note that duplicate papers (based on paper_id, doi, or title) have been
-deduplicated, and papers without a paper_id or title have been removed.
+Note that the papers have been deduplicated based on paper_id, doi, or
+title, and papers without a paper_id or title have been removed.
 }
 \examples{
 
@@ -40,7 +44,7 @@ library(dplyr)
 cord19_papers \%>\%
   count(journal, sort = TRUE)
 
-# What are the most common words in titles?
+# What are the most common words in titles (or abstracts)?
 library(tidytext)
 
 cord19_papers \%>\%
@@ -48,10 +52,5 @@ cord19_papers \%>\%
   count(word, sort = TRUE) \%>\%
   anti_join(stop_words, by = "word")
 
-# Could also look at abstracts
-
-}
-\seealso{
-\url{https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge}
 }
 \keyword{datasets}

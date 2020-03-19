@@ -9,7 +9,8 @@
 #'   \item{paper_id}{Unique identifier that can link to metadata and citations.
 #'   SHA of the paper PDF.}
 #'   \item{paragraph}{Index of the paragraph within the paper (1, 2, 3)}
-#'   \item{section}{Section (e.g. Introduction, Results, Discussion)}
+#'   \item{section}{Section (e.g. Introduction, Results, Discussion). The
+#'   casing is standardized to title case.}
 #'   \item{text}{Full text}
 #' }
 #'
@@ -22,5 +23,5 @@
 #' cord19_paragraphs %>%
 #'   count(section = str_to_lower(section), sort = TRUE)
 #'
-#' @seealso \url{https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge}
+#' @source \url{https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge}
 "cord19_paragraphs"

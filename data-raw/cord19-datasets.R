@@ -1,5 +1,3 @@
-## code to prepare `DATASET` dataset goes here
-
 library(dplyr)
 library(purrr)
 library(tidyr)
@@ -55,15 +53,12 @@ paragraph_citations <- paragraphs %>%
     unnest(citations) %>%
     hoist(citations, start = "start", end = "end", text = "text", ref_id = "ref_id")
 
-# Now that citations are pulled out, remove it from paragraphs
+# Remaining cleanup of paragraphs
 cord19_paragraphs <- paragraphs %>%
     select(-citations) %>%
-    semi_join(cord19_papers, by = "paper_id")
-
-cord19_paragraph_citations <- paragraph_citations %>%
-    filter(!is.na(ref_id)) %>%
+    mutate(section = str_to_title(section)) %>%
     semi_join(cord19_papers, by = "paper_id") %>%
-    mutate(ref_id = str_replace(ref_id, "BIBREF", "b"))
+    mutate_if(is.character, na_if, "")
 
 # Pulling out the details from the article references
 
@@ -82,7 +77,17 @@ citations <- articles_hoisted %>%
           doi = list("other_ids", "DOI", 1)) %>%
     select(-bib_entries)
 
-cord19_paper_citations <- citations
+# Filter out the references that aren't journal titles
+blacklist_regex <- "Publisher's Note|Springer Nature remains|This article is|The copyright holder|All rights reserved|No reuse allowed"
+cord19_paper_citations <- citations %>%
+    filter(!is.na(ref_id),
+           !str_detect(title, blacklist_regex))
+
+cord19_paragraph_citations <- paragraph_citations %>%
+    filter(!is.na(ref_id)) %>%
+    semi_join(cord19_papers, by = "paper_id") %>%
+    mutate(ref_id = str_replace(ref_id, "BIBREF", "b")) %>%
+    semi_join(cord19_paper_citations, by = c("paper_id", "ref_id"))
 
 usethis::use_data(cord19_papers, overwrite = TRUE)
 usethis::use_data(cord19_paragraphs, overwrite = TRUE)

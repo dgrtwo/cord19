@@ -15,6 +15,9 @@
   \item{ref_id}{Reference ID, can be used to join to
   \code{\link{cord19_paper_citations}}}.
 }}
+\source{
+\url{https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge}
+}
 \usage{
 cord19_paragraph_citations
 }
@@ -24,8 +27,5 @@ only the ones in \code{\link{cord19_papers}} (thus, deduplicated and
 filtered). Can be joined with \code{\link{cord19_paper_citations}} with
 \code{paper_id} and \code{ref_id}, or with \code{cord19_paragraphs} using
 \code{paper_id} and \code{paragraph}.
-}
-\seealso{
-\url{https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge}
 }
 \keyword{datasets}

@@ -18,5 +18,5 @@
 #'   \code{\link{cord19_paper_citations}}}.
 #' }
 #'
-#' @seealso \url{https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge}
+#' @source \url{https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge}
 "cord19_paragraph_citations"
