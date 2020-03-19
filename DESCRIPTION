@@ -1,0 +1,23 @@
+Package: cord19
+Type: Package
+Title: COVID-19 Open Research Dataset
+Version: 0.0.0.9000
+Authors@R: c(person("David", "Robinson", email = "admiral.david@gmail.com", role = c("aut", "cre")))
+Maintainer: David Robinson <admiral.david@gmail.com>
+Description: Shares the data from the COVID-19 Open Research Dataset Challenge
+    hosted by Kaggle, in a format easily analyzed within R. See here for more:
+    https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge
+License: file LICENSE
+Encoding: UTF-8
+LazyData: true
+Suggests: 
+    dplyr,
+    purrr,
+    tidyr,
+    readr,
+    stringr,
+    janitor,
+    jsonlite,
+    tidytext,
+    usethis
+RoxygenNote: 6.1.1

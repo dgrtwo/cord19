@@ -1,0 +1,71 @@
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# cord19
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+(WORK IN PROGRESS)
+
+The cord19 package shares the [COVID-19 Open Research Dataset (CORD-19)](https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge#all_sources_metadata_2020-03-13.csv) in a tidy form that is easily analyzed within R.
+
+## Installation
+
+Install the package from GitHub here:
+
+``` r
+remotes::install_github("dgrtwo/cord19")
+```
+
+## Example
+
+The package turns the CORD-19 dataset into a set of tidy tables. For example, the paper metadata is stored in `cord19_papers`:
+
+```{r example}
+library(cord19)
+
+cord19_papers
+
+# Learn how many papers came from each journal
+cord19_papers %>%
+    count(journal, sort = TRUE)
+```
+
+Most usefully, it has the full text of the papers in `cord19_paragraphs`.
+
+```{r}
+cord19_paragraphs
+```
+
+This allows for some mining with a package like tidytext.
+
+```{r}
+library(tidytext)
+set.seed(2020)
+
+# Sample 1000 random paragraphs
+cord19_paragraphs %>%
+    sample_n(1000) %>%
+    unnest_tokens(word, text) %>%
+    count(word, sort = TRUE) %>%
+    anti_join(stop_words, by = "word")
+```
+
+### Citations
+
+This also includes the articles cited by each paper.
+
+```{r}
+# What are the most commonly cited articles?
+cord19_paper_citations %>%
+    count(title, sort = TRUE)
+```
